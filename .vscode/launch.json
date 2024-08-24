@@ -1,0 +1,28 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Current Device",
+			"request": "launch",
+			"type": "dart"
+		},
+		{
+			"name": "iPhone_XS",
+			"request": "launch",
+			"type": "dart",
+			"deviceId": "00008020-0005304034BB002E"
+		},
+		{
+			"name": "Galaxy_S23",
+			"request": "launch",
+			"type": "dart",
+			"deviceId": "R3CW20S75CV"
+		},
+	],
+	"compounds": [
+		{
+			"name": "All Devices",
+			"configurations": ["iPhone_XS", "Galaxy_S23"],
+		}
+	]
+}

@@ -8,12 +8,25 @@ class HostScreen extends StatefulWidget {
 }
 
 class _HostScreenState extends State<HostScreen> {
+  final TextEditingController _nameController = TextEditingController();
+  String _roomCode = "111111";
+  List<String> guests = [];
+
   @override
+  void initState() {
+    super.initState();
+    generateRoomCode();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Host Screen"),
       ),
     );
+  }
+
+  void generateRoomCode() async {
+    // final roomCollection = FirebaseFirestore
   }
 }

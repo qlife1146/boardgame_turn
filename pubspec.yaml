@@ -38,6 +38,7 @@ dependencies:
   numberpicker: ^2.1.2
   circular_countdown_timer: ^0.2.4
   vibration: ^2.0.0
+  firebase_core: ^2.24.2
 
 dev_dependencies:
   flutter_test:

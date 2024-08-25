@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class HostScreen extends StatefulWidget {
@@ -27,6 +28,6 @@ class _HostScreenState extends State<HostScreen> {
   }
 
   void generateRoomCode() async {
-    // final roomCollection = FirebaseFirestore
+    // final roomCollection = FirebaseFirestore.instance.collection('rooms');
   }
 }

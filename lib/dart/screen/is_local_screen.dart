@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vscode/dart/test.dart';
 import 'guest_screen.dart';
 import 'host_screen.dart';
 import 'timer_setting_screen.dart';
@@ -48,6 +49,16 @@ class _IsLocalScreenState extends State<IsLocalScreen> {
                   );
                 },
                 child: Text("Guest"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => Test(),
+                    ),
+                  );
+                },
+                child: Text("test"),
               ),
             ],
           ),

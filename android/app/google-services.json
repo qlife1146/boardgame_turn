@@ -24,44 +24,6 @@
           "other_platform_oauth_client": []
         }
       }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:794199271182:android:08d5304f99d6b497b6995f",
-        "android_client_info": {
-          "package_name": "com.luca.turnTimer"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD4qxmnu5e4T5FNdaKhZdENqAl05Nby9os"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:794199271182:android:a673a03a7bb28876b6995f",
-        "android_client_info": {
-          "package_name": "com.turnTimer"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD4qxmnu5e4T5FNdaKhZdENqAl05Nby9os"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
     }
   ],
   "configuration_version": "1"

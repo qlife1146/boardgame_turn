@@ -1,16 +1,22 @@
-# vscode
+ # 개요
+보드게임을 하는데 맘에 드는 턴 타이머 앱이 없어서 직접 개발(겸사겸사 포트폴리오,,,).
 
-A new Flutter project.
+# 기능 설명
+- 타이머 있는 턴
+  - 현재 턴 상태 확인
+  - 화면 어느 곳을 터치해도 시작/일시정지 가능
+  - 다음 턴으로 넘어갈 수 있는 버튼
+  - 시간이 끝날 때 진동으로 알림
+- 타이머 없는 턴
+  - 현재 턴 상태 확인
+  - 화면 어느 곳을 터치해도 다음 턴 넘어가기 가능
 
-## Getting Started
+# 개발할 기능
+- 타이머 있는 턴
+  - [ ] 다음 턴 버튼 누르면 누를 때 AutoStart 온/오프
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- 그 외
+  - [ ] 체스 시계
+  - [ ] 선 플레이어 추첨
+  - [ ] 반응형 레이아웃 적용
+  - [ ] 각 기기마다 자기 턴 및 타이머 기능

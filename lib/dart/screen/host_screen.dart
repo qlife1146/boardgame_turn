@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:numberpicker/numberpicker.dart';
 import 'package:vscode/dart/screen/timer_setting_screen.dart';
 
 class HostScreen extends StatefulWidget {
@@ -28,6 +29,7 @@ class _HostScreenState extends State<HostScreen> {
   String _roomCode = "******";
   bool isRoomOpen = false;
   List<String> guests = [];
+  int _timeDuration = 60;
 
   @override
   void initState() {
@@ -50,11 +52,37 @@ class _HostScreenState extends State<HostScreen> {
       child: Scaffold(
         body: SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: "Your name"),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                child: TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(labelText: "Your name"),
+                ),
+              ),
+              Text("Seconds"),
+              NumberPicker(
+                minValue: 0,
+                maxValue: 180,
+                value: _timeDuration,
+                onChanged: (value) => {
+                  setState(() => _timeDuration = value),
+                },
+                step: 10,
+                haptics: true,
+                axis: Axis.horizontal,
+                itemCount: 3,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.black26),
+                ),
+              ),
+              Text(
+                "0은 무제한",
+                style: TextStyle(
+                  fontSize: 10,
+                ),
               ),
               ElevatedButton(
                 onPressed: isRoomOpen ? null : _createRoom,
@@ -143,6 +171,9 @@ class _HostScreenState extends State<HostScreen> {
       'guests': [],
       'isOpen': true,
     });
+    setState(() {
+      isRoomOpen = true;
+    });
   }
 
   void _closeRoom() async {
@@ -173,18 +204,7 @@ class _HostScreenState extends State<HostScreen> {
 
   void _createRoom() async {
     await _generateRoomCode();
-    if (_nameController.text == "") {
-      _nameController.text = "HOST";
-    }
-    // 방 생성 및 Firestore에 저장
-    final roomCollection = _firestore.collection('rooms');
-    await roomCollection.doc(_roomCode).set(
-      {
-        'host': _nameController.text,
-        'guests': [],
-        'isOpen': true,
-      },
-    );
+    await _openRoom();
 
     setState(() {
       isRoomOpen = true;

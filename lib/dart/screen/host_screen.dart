@@ -1,5 +1,3 @@
-import 'dart:ffi';
-import 'dart:isolate';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -66,9 +64,7 @@ class _HostScreenState extends State<HostScreen> {
                 minValue: 0,
                 maxValue: 180,
                 value: _timeDuration,
-                onChanged: (value) => {
-                  setState(() => _timeDuration = value),
-                },
+                onChanged: (value) => setState(() => _timeDuration = value),
                 step: 10,
                 haptics: true,
                 axis: Axis.horizontal,
@@ -164,10 +160,14 @@ class _HostScreenState extends State<HostScreen> {
     } while (true);
   }
 
-  void _openRoom() async {
+  Future<void> _openRoom() async {
     final roomCollection = FirebaseFirestore.instance.collection('rooms');
+    var hostName = _nameController.text;
+    if (hostName == "") {
+      hostName = "HOST";
+    }
     await roomCollection.doc(_roomCode).set({
-      'host': _nameController.text,
+      'host': hostName,
       'guests': [],
       'isOpen': true,
     });

@@ -2,6 +2,8 @@
 	"version": "0.2.0",
 	"configurations": [
 	
+
+	
 		
 		{
 			"name": "Current Device",
@@ -19,6 +21,12 @@
 			"request": "launch",
 			"type": "dart",
 			"deviceId": "R3CW20S75CV"
+		},
+		{
+			"name": "Mac",
+			"request": "launch",
+			"type": "dart",
+			"deviceId": "macos"
 		},
 	],
 	"compounds": [

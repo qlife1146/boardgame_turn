@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 
 class WaitRoomScreen extends StatefulWidget {
   final String roomCode;
+  final String guestName;
 
-  WaitRoomScreen({required this.roomCode});
+  WaitRoomScreen({super.key, required this.roomCode, required this.guestName});
   @override
   State<WaitRoomScreen> createState() => _WaitRoomScreenState();
 }
@@ -22,7 +23,7 @@ class _WaitRoomScreenState extends State<WaitRoomScreen> {
         if (snapshot.exists) {
           var roomData = snapshot.data() as Map<String, dynamic>;
           if (roomData['guests'] == null ||
-              !roomData['guests'].contains('guest_name')) {
+              !roomData['guests'].contains(widget.guestName)) {
             _showDisconnectDialog();
           }
         }

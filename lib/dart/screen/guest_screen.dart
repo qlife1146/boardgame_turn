@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:vscode/dart/screen/wait_room_screen.dart';
 
 class GuestScreen extends StatefulWidget {
-  const GuestScreen({super.key});
+  final Stream<DocumentSnapshot>? roomStream;
+  const GuestScreen({super.key, this.roomStream});
 
   @override
   State<GuestScreen> createState() => _GuestScreenState();
@@ -13,6 +14,14 @@ class _GuestScreenState extends State<GuestScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _roomCodeController = TextEditingController();
   late String _hostName;
+  late Stream<DocumentSnapshot>? roomStream;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    roomStream = widget.roomStream;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,15 +29,32 @@ class _GuestScreenState extends State<GuestScreen> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          TextField(
+          TextFormField(
             controller: _nameController,
             decoration: InputDecoration(labelText: "Your name"),
+            textInputAction: TextInputAction.next,
           ),
-          TextField(
+          TextFormField(
             controller: _roomCodeController,
             decoration: InputDecoration(labelText: "Room code"),
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.continueAction,
           ),
-          ElevatedButton(onPressed: _joinRoom, child: Text("Join"))
+          ElevatedButton(onPressed: _joinRoom, child: Text("Join")),
+          StreamBuilder<DocumentSnapshot>(
+              stream: roomStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.active &&
+                    snapshot.hasData) {
+                  var roomData = snapshot.data!.data() as Map<String, dynamic>;
+                  if (!roomData['guests'].contains(_nameController.text)) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _showBannedDialog();
+                    });
+                  }
+                }
+                return SizedBox.shrink();
+              })
         ],
       ),
     );
@@ -38,12 +64,15 @@ class _GuestScreenState extends State<GuestScreen> {
     final roomDoc = FirebaseFirestore.instance
         .collection('rooms')
         .doc(_roomCodeController.text);
-
     DocumentSnapshot roomSnapshot = await roomDoc.get();
+    //get은 1회성 조회, snapshot은 실시간 조회. snapshot의 실시간 변화는 stream으로 전송.
+
     if (roomSnapshot.exists) {
+      //exists = roomSnapshot에 데이터가 있다면 ture, 없다면 false.
       var roomData = roomSnapshot.data() as Map<String, dynamic>;
       if (roomData['isOpen'] == true) {
         _hostName = roomData['host'];
+        roomStream = roomDoc.snapshots();
 
         showDialog(
           context: context,
@@ -55,7 +84,7 @@ class _GuestScreenState extends State<GuestScreen> {
                   onPressed: () async {
                     Navigator.pop(context);
                     List<String> guests = List<String>.from(roomData['guests']);
-                    guests.add(_nameController.text);
+                    guests.add(_nameController.text); // =guest name
 
                     await roomDoc.update({
                       'guests': guests,
@@ -65,7 +94,9 @@ class _GuestScreenState extends State<GuestScreen> {
                         context,
                         MaterialPageRoute(
                             builder: (context) => WaitRoomScreen(
-                                roomCode: _roomCodeController.text)));
+                                  roomCode: _roomCodeController.text,
+                                  guestName: _nameController.text,
+                                )));
                   },
                   child: Text("Yes"))
             ],
@@ -79,5 +110,20 @@ class _GuestScreenState extends State<GuestScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("Room not found.")));
     }
+  }
+
+  void _showBannedDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("You are banned."),
+        actions: [
+          TextButton(
+              onPressed: () =>
+                  Navigator.popUntil(context, ModalRoute.withName('/')),
+              child: Text("OK"))
+        ],
+      ),
+    );
   }
 }

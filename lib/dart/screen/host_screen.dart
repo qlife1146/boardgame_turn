@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:numberpicker/numberpicker.dart';
+import 'package:vscode/dart/function/multi_setting.dart';
 import 'package:vscode/dart/screen/timer_setting_screen.dart';
 
 class HostScreen extends StatefulWidget {
@@ -129,6 +130,18 @@ class _HostScreenState extends State<HostScreen> {
                   },
                 ),
               ),
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MultiSetting(
+                          roomCode: _roomCode,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text("Next"))
             ],
           ),
         ),

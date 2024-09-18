@@ -18,44 +18,60 @@ class _GuestScreenState extends State<GuestScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     roomStream = widget.roomStream;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          TextFormField(
-            controller: _nameController,
-            decoration: InputDecoration(labelText: "Your name"),
-            textInputAction: TextInputAction.next,
-          ),
-          TextFormField(
-            controller: _roomCodeController,
-            decoration: InputDecoration(labelText: "Room code"),
-            keyboardType: TextInputType.number,
-            textInputAction: TextInputAction.continueAction,
-          ),
-          ElevatedButton(onPressed: _joinRoom, child: Text("Join")),
-          StreamBuilder<DocumentSnapshot>(
-              stream: roomStream,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.active &&
-                    snapshot.hasData) {
-                  var roomData = snapshot.data!.data() as Map<String, dynamic>;
-                  if (!roomData['guests'].contains(_nameController.text)) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      _showBannedDialog();
-                    });
+    return PopScope(
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                child: TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(labelText: "Your name"),
+                  textInputAction: TextInputAction.next,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                child: TextField(
+                  controller: _roomCodeController,
+                  decoration: InputDecoration(labelText: "Room code"),
+                  textInputAction: TextInputAction.continueAction,
+                ),
+              ),
+              ElevatedButton(
+                onPressed: _joinRoom,
+                child: Text("Join"),
+              ),
+              StreamBuilder<DocumentSnapshot>(
+                stream: roomStream,
+                builder: (context, snapshot) {
+                  //snapshot의 Connection 상태가 active일 때 && 데이터가 들어있을 때
+                  if (snapshot.connectionState == ConnectionState.active &&
+                      snapshot.hasData) {
+                    var roomData =
+                        snapshot.data!.data() as Map<String, dynamic>;
+                    if (!roomData['guests'].contains(_nameController.text)) {
+                      WidgetsBinding.instance.addPostFrameCallback(
+                        (_) {
+                          _showBannedDialog();
+                        },
+                      );
+                    }
                   }
-                }
-                return SizedBox.shrink();
-              })
-        ],
+                  return SizedBox.shrink();
+                },
+              )
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -74,6 +90,7 @@ class _GuestScreenState extends State<GuestScreen> {
         _hostName = roomData['host'];
         roomStream = roomDoc.snapshots();
 
+        if (!mounted) return;
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -86,17 +103,21 @@ class _GuestScreenState extends State<GuestScreen> {
                     List<String> guests = List<String>.from(roomData['guests']);
                     guests.add(_nameController.text); // =guest name
 
-                    await roomDoc.update({
-                      'guests': guests,
-                    });
+                    await roomDoc.update(
+                      {
+                        'guests': guests,
+                      },
+                    );
 
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => WaitRoomScreen(
-                                  roomCode: _roomCodeController.text,
-                                  guestName: _nameController.text,
-                                )));
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => WaitRoomScreen(
+                          roomCode: _roomCodeController.text,
+                          guestName: _nameController.text,
+                        ),
+                      ),
+                    );
                   },
                   child: Text("Yes"))
             ],

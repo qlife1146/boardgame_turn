@@ -13,19 +13,12 @@ class HostScreen extends StatefulWidget {
   State<HostScreen> createState() => _HostScreenState();
 }
 
-// Future<void> updateRoomActivity(String roomCode) async {
-//   FirebaseFirestore _firestore = FirebaseFirestore.instance;
-//   final roomDoc = _firestore.collection('rooms').doc(roomCode);
-
-//   await roomDoc.update({
-//     'lastActive': FieldValue.serverTimestamp(),
-//   });
-// }
-
 class _HostScreenState extends State<HostScreen> {
-  FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final TextEditingController _nameController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance; //Firebase 축약
+  final TextEditingController _nameController =
+      TextEditingController(); //Host input을 위한 컨트롤러
   String _roomCode = "******";
+  bool isRoomCreated = false;
   bool isRoomOpen = false;
   List<String> guests = [];
   int _timeDuration = 60;
@@ -33,11 +26,13 @@ class _HostScreenState extends State<HostScreen> {
   @override
   void initState() {
     super.initState();
-    // _generateRoomCode();
   }
 
+  @override
   Widget build(BuildContext context) {
     return PopScope(
+      //SafeArea
+      //뒤로 갈 때 해당 방 넘버의 collection을 삭제
       onPopInvokedWithResult: (didPop, result) async {
         try {
           await FirebaseFirestore.instance
@@ -60,7 +55,7 @@ class _HostScreenState extends State<HostScreen> {
                   decoration: InputDecoration(labelText: "Your name"),
                 ),
               ),
-              Text("Seconds"),
+              const Text("Seconds"),
               NumberPicker(
                 minValue: 0,
                 maxValue: 180,
@@ -75,21 +70,40 @@ class _HostScreenState extends State<HostScreen> {
                   border: Border.all(color: Colors.black26),
                 ),
               ),
-              Text(
+              const Text(
                 "0은 무제한",
                 style: TextStyle(
                   fontSize: 10,
                 ),
               ),
+
+              //elevatedButton
               ElevatedButton(
-                onPressed: isRoomOpen ? null : _createRoom,
-                child: Text("Create Room"),
+                onPressed: () {
+                  //방이 만들기 전 상태라면(=false일 때)
+                  if (!isRoomCreated && _roomCode != "******") {
+                    //방장 이름 적용, 코드 생성, 방 오픈, 방 상태 변경(close => open)
+                    _createRoom();
+                  } else if (isRoomOpen && guests.isNotEmpty) {
+                    //방을 닫을 수 있는 상태
+                    _closeRoom();
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MultiSetting(roomCode: _roomCode),
+                      ),
+                    );
+                  }
+                },
+                //버튼 텍스트 상황에 따라 변경
+                child: Text(isRoomCreated
+                    ? (isRoomOpen ? "Close Room" : "Next")
+                    : "Create Room"),
+                // child: Text(),
               ),
               Text("Room Code: $_roomCode"),
-              ElevatedButton(
-                onPressed: isRoomOpen ? _closeRoom : null,
-                child: Text(isRoomOpen ? "Closed" : "Opened"),
-              ),
+
               Expanded(
                 child: StreamBuilder<DocumentSnapshot>(
                   stream: FirebaseFirestore.instance
@@ -97,51 +111,45 @@ class _HostScreenState extends State<HostScreen> {
                       .doc(_roomCode)
                       .snapshots(),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return Center(child: CircularProgressIndicator());
+                    //컬렉션이 있고, 데이터가 비어 있지 않을 때
+                    if (snapshot.hasData && snapshot.data!.data() != null) {
+                      var roomData =
+                          snapshot.data!.data() as Map<String, dynamic>?;
+                      // roomData의 guests에 데이터가 있다면 guests 데이터를, 없다면 빈 리스트 반환
+                      guests = List<String>.from(roomData?['guests'] ?? []);
+                      // guests가 비어있지 않다면
+                      if (guests.isNotEmpty) {
+                        return ListView.builder(
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              title: Text(guests[index]),
+                              trailing: IconButton(
+                                onPressed: () => _removeGuest(guests[index]),
+                                icon: const Icon(Icons.remove_circle),
+                              ),
+                            );
+                          },
+                          itemCount: guests.length,
+                        );
+                      } else {
+                        return const Center(
+                          child: Text("No guests"),
+                        );
+                        // TODO: Add the No guests warning message.
+                      }
                     }
-
-                    var roomData = snapshot.data!.data()
-                        as Map<String, dynamic>?; // null 체크
-                    if (roomData == null) {
-                      return Center(child: Text('No room data available'));
-                    }
-
-                    guests = List<String>.from(roomData['guests'] ?? []);
-
-                    return ListView.builder(
-                      itemCount: guests.length,
-                      itemBuilder: (context, index) {
-                        if (index < guests.length) {
-                          return ListTile(
-                            title: Text(guests[index]),
-                            trailing: IconButton(
-                              onPressed: () {
-                                _removeGuest(guests[index]);
-                              },
-                              icon: Icon(Icons.remove_circle),
-                            ),
-                          );
-                        } else {
-                          return SizedBox();
-                        }
-                      },
+                    return const Center(
+                      child: Text("No room data available"),
                     );
                   },
                 ),
               ),
               ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MultiSetting(
-                          roomCode: _roomCode,
-                        ),
-                      ),
-                    );
-                  },
-                  child: Text("Next"))
+                onPressed: () {
+                  _addTestGuest();
+                },
+                child: const Text("Add a Test Guest"),
+              )
             ],
           ),
         ),
@@ -149,22 +157,27 @@ class _HostScreenState extends State<HostScreen> {
     );
   }
 
+  void _createRoom() async {
+    await _generateRoomCode();
+    await _openRoom();
+
+    setState(() {
+      isRoomOpen = true;
+    });
+  }
+
   Future<void> _generateRoomCode() async {
     final roomCollection = _firestore.collection('rooms');
     String generatedRoomCode;
 
     do {
-      final min = 100000;
-      final max = 999999;
+      const min = 100000;
+      const max = 999999;
 
       // min과 max 사이의 랜덤 숫자 생성
       generatedRoomCode = (min + Random().nextInt(max - min + 1)).toString();
-      // generatedRoomCode = (100000 +
-      //         (999999 - 100000) *
-      //             (new DateTime.now().millisecondsSinceEpoch % 100000))
-      // .toString();
-
       final snapshot = await roomCollection.doc(generatedRoomCode).get();
+
       if (!snapshot.exists) {
         _roomCode = generatedRoomCode;
         setState(() {});
@@ -191,16 +204,19 @@ class _HostScreenState extends State<HostScreen> {
 
   void _closeRoom() async {
     final roomCollection = FirebaseFirestore.instance.collection('rooms');
+    //방을 닫으면 해당 roomCode의 방의 개폐 유무를 false로 변경
     await roomCollection.doc(_roomCode).update({'isOpen': false});
 
     setState(() {
       isRoomOpen = false;
     });
 
+    if (!mounted) return;
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (contexst) => TimerSettingScreen(),
+        builder: (context) => const TimerSettingScreen(),
       ),
     );
   }
@@ -210,17 +226,20 @@ class _HostScreenState extends State<HostScreen> {
     guests.remove(guest);
 
     await roomCollection.doc(_roomCode).update({
-      'guests': guests,
+      'guests': guests, //로컬의 guests 리스트를 문서에 그대로 박아버림
     });
-    setState(() {});
+    // setState(() {});
   }
 
-  void _createRoom() async {
-    await _generateRoomCode();
-    await _openRoom();
+  void _addTestGuest() async {
+    final roomCollection = FirebaseFirestore.instance.collection('rooms');
+    List<String> testGuests = ['testGuest1', 'testGuest2', 'testGuest3'];
+    guests.addAll(testGuests);
 
-    setState(() {
-      isRoomOpen = true;
+    await roomCollection.doc(_roomCode).update({
+      'guests': guests,
     });
+
+    debugPrint(guests.toString());
   }
 }

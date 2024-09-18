@@ -28,7 +28,7 @@ class _IsLocalScreenState extends State<IsLocalScreen> {
                     ),
                   );
                 },
-                child: Text("Local"),
+                child: const Text("Local"),
               ),
               ElevatedButton(
                 onPressed: () {

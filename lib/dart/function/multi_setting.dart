@@ -40,7 +40,7 @@ class _MultiSettingState extends State<MultiSetting> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text("Seconds"),
+            const Text("Seconds"),
             NumberPicker(
               minValue: 0,
               maxValue: 180,
@@ -57,7 +57,7 @@ class _MultiSettingState extends State<MultiSetting> {
                 border: Border.all(color: Colors.black26),
               ),
             ),
-            Text(
+            const Text(
               "0은 무제한",
               style: TextStyle(
                 fontSize: 10,

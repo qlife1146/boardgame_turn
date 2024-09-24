@@ -1,12 +1,13 @@
 {
 	"version": "0.2.0",
 	"configurations": [
+
 		
-		{
-			"name": "Current Device",
-			"request": "launch",
-			"type": "dart"
-		},
+		// {
+		// 	"name": "Current Device",
+		// 	"request": "launch",
+		// 	"type": "dart"
+		// },
 		{
 			"name": "iPhone_XS",
 			"request": "launch",
@@ -20,23 +21,20 @@
 			"deviceId": "R3CW20S75CV"
 		},
 		{
-			"name": "Mac",
+			"name": "Galaxy_S8",
 			"request": "launch",
 			"type": "dart",
-			"deviceId": "macos"
-		},
-		{
-			"name": "wireless",
-			"request": "launch",
-			"type": "dart",
-			//IP Address
-			"deviceId": "172.16.21.104:37149"
+			"deviceId": "ce061716a28c310601"
 		},
 	],
 	"compounds": [
 		{
 			"name": "All Devices",
 			"configurations": ["iPhone_XS", "Galaxy_S23"],
-		}
+		},
+		{
+			"name": "Android Devices",
+			"configurations": ["Galaxy_S8", "Galaxy_S23"],
+		},
 	]
 }

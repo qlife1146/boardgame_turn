@@ -11,30 +11,56 @@ class WaitRoomScreen extends StatefulWidget {
 }
 
 class _WaitRoomScreenState extends State<WaitRoomScreen> {
+  List<String> guests = [];
+
   @override
   void initState() {
     super.initState();
-    FirebaseFirestore.instance
-        .collection('rooms')
-        .doc(widget.roomCode)
-        .snapshots()
-        .listen(
-      (snapshot) {
-        if (snapshot.exists) {
-          var roomData = snapshot.data() as Map<String, dynamic>;
-          if (roomData['guests'] == null ||
-              !roomData['guests'].contains(widget.guestName)) {
-            _showDisconnectDialog();
-          }
-        }
-      },
-    );
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Wait Room Screen"),
+      body: SafeArea(
+        child: Expanded(
+          child: StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('rooms')
+                .doc(widget.roomCode)
+                .snapshots(),
+            builder: (context, snapshot) {
+              //컬렉션이 있고, 데이터가 비어 있지 않을 때
+              if (snapshot.hasData && snapshot.data!.data() != null) {
+                var roomData = snapshot.data!.data() as Map<String, dynamic>?;
+                // roomData의 guests에 데이터가 있다면 guests 데이터를, 없다면 빈 리스트 반환
+                guests = List<String>.from(roomData?['guests'] ?? []);
+                // guests가 비어있지 않다면
+                if (guests.isNotEmpty) {
+                  return ListView.builder(
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(guests[index]),
+                        trailing: IconButton(
+                          onPressed: () => _removeGuest(guests[index]),
+                          icon: const Icon(Icons.remove_circle),
+                        ),
+                      );
+                    },
+                    itemCount: guests.length,
+                  );
+                } else {
+                  return const Center(
+                    child: Text("No guests"),
+                  );
+                  // TODO: Add the No guests warning message.
+                }
+              }
+              return const Center(
+                child: Text("No room data available"),
+              );
+            },
+          ),
+        ),
       ),
     );
   }

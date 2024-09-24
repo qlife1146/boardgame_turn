@@ -43,7 +43,7 @@ class _GuestScreenState extends State<GuestScreen> {
                 child: TextField(
                   controller: _roomCodeController,
                   decoration: InputDecoration(labelText: "Room code"),
-                  textInputAction: TextInputAction.continueAction,
+                  // textInputAction: TextInputAction.continueAction,
                 ),
               ),
               ElevatedButton(
@@ -113,8 +113,8 @@ class _GuestScreenState extends State<GuestScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => WaitRoomScreen(
-                          roomCode: _roomCodeController.text,
-                          guestName: _nameController.text,
+                          _roomCode: _roomCodeController.text,
+                          _guestName: _nameController.text,
                         ),
                       ),
                     );

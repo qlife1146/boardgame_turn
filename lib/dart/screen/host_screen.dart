@@ -21,11 +21,13 @@ class _HostScreenState extends State<HostScreen> {
   bool isRoomCreated = false;
   bool isRoomOpen = false;
   List<String> guests = [];
-  int _timeDuration = 60;
+  int caseInt = 0;
 
   @override
   void initState() {
     super.initState();
+    debugPrint("debug: $isRoomCreated.toString()");
+    debugPrint("debug: $_roomCode.toString()");
   }
 
   @override
@@ -55,53 +57,56 @@ class _HostScreenState extends State<HostScreen> {
                   decoration: InputDecoration(labelText: "Your name"),
                 ),
               ),
-              const Text("Seconds"),
-              NumberPicker(
-                minValue: 0,
-                maxValue: 180,
-                value: _timeDuration,
-                onChanged: (value) => setState(() => _timeDuration = value),
-                step: 10,
-                haptics: true,
-                axis: Axis.horizontal,
-                itemCount: 3,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.black26),
-                ),
-              ),
-              const Text(
-                "0은 무제한",
-                style: TextStyle(
-                  fontSize: 10,
-                ),
-              ),
 
               //elevatedButton
-              ElevatedButton(
-                onPressed: () {
-                  //방이 만들기 전 상태라면(=false일 때)
-                  if (!isRoomCreated && _roomCode != "******") {
-                    //방장 이름 적용, 코드 생성, 방 오픈, 방 상태 변경(close => open)
-                    _createRoom();
-                  } else if (isRoomOpen && guests.isNotEmpty) {
-                    //방을 닫을 수 있는 상태
-                    _closeRoom();
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MultiSetting(roomCode: _roomCode),
-                      ),
-                    );
-                  }
-                },
-                //버튼 텍스트 상황에 따라 변경
-                child: Text(isRoomCreated
-                    ? (isRoomOpen ? "Close Room" : "Next")
-                    : "Create Room"),
-                // child: Text(),
+              // ElevatedButton(
+              //   onPressed: () {
+              //     //방이 만들기 전 상태라면(=false일 때)
+              //     if (!isRoomCreated && _roomCode != "******") {
+              //       //방장 이름 적용, 코드 생성, 방 오픈, 방 상태 변경(close => open)
+              //       debugPrint(isRoomCreated.toString());
+              //       debugPrint(_roomCode.toString());
+              //       _createRoom();
+              //     } else if (isRoomOpen && guests.isNotEmpty) {
+              //       //방을 닫을 수 있는 상태
+              //       _closeRoom();
+              //     } else {
+              //       Navigator.push(
+              //         context,
+              //         MaterialPageRoute(
+              //           builder: (context) => MultiSetting(roomCode: _roomCode),
+              //         ),
+              //       );
+              //     }
+              //   },
+              //   //버튼 텍스트 상황에 따라 변경
+              //   child: Text(isRoomCreated
+              //       ? (isRoomOpen ? "Close Room" : "Next")
+              //       : "Create Room"),
+              //   // child: Text(),
+              // ),
+
+              Visibility(
+                visible: caseInt == 0,
+                child: ElevatedButton(
+                    onPressed: () => _createRoom(), child: Text("Create Room")),
               ),
+              Visibility(
+                visible: caseInt == 1,
+                child: ElevatedButton(
+                    onPressed: () => _closeRoom, child: Text("Close Room")),
+              ),
+              Visibility(
+                  visible: caseInt == 2,
+                  child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    MultiSetting(roomCode: _roomCode)));
+                      },
+                      child: Text("Next Page"))),
               Text("Room Code: $_roomCode"),
 
               Expanded(
@@ -144,6 +149,7 @@ class _HostScreenState extends State<HostScreen> {
                   },
                 ),
               ),
+              Text(caseInt.toString()),
               ElevatedButton(
                 onPressed: () {
                   _addTestGuest();
@@ -162,7 +168,8 @@ class _HostScreenState extends State<HostScreen> {
     await _openRoom();
 
     setState(() {
-      isRoomOpen = true;
+      // isRoomOpen = true;
+      increaseInt();
     });
   }
 
@@ -208,7 +215,8 @@ class _HostScreenState extends State<HostScreen> {
     await roomCollection.doc(_roomCode).update({'isOpen': false});
 
     setState(() {
-      isRoomOpen = false;
+      // isRoomOpen = false;
+      increaseInt();
     });
 
     if (!mounted) return;
@@ -241,5 +249,11 @@ class _HostScreenState extends State<HostScreen> {
     });
 
     debugPrint(guests.toString());
+  }
+
+  void increaseInt() {
+    setState(() {
+      caseInt++;
+    });
   }
 }

@@ -32,7 +32,6 @@ class _TurnFuncState extends State<TurnFunc> {
             onTap: () {
               setState(
                 () {
-                  // debugPrint("touched");
                   currentTurn++;
                   if (currentTurn >= widget.players + 1) {
                     currentTurn = 1;

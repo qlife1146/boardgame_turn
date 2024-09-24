@@ -31,16 +31,6 @@ class _TimerFuncState extends State<TimerFunc> {
   @override
   void initState() {
     super.initState();
-    // debugPrint(_turnMainColor[0].toString());
-    // debugPrint(widget.players.toString());
-
-    //   WidgetsBinding.instance.addPostFrameCallback((_) {
-    //     debugPrint("  init Started: ${_TimerController.isStarted}");
-    //     debugPrint("   init Paused: ${_TimerController.isPaused}");
-    //     debugPrint("init Restarted: ${_TimerController.isRestarted}");
-    //     debugPrint("   init Resume: ${_TimerController.isResumed}");
-    //   }
-    // );
   }
 
   int currentTurn = 1;
@@ -101,7 +91,6 @@ class _TimerFuncState extends State<TimerFunc> {
                     isReverseAnimation: true,
                     onComplete: () => {
                       Vibration.vibrate(duration: 1000),
-                      // debugPrint("END"),
                     },
                   ),
                 ),
@@ -117,9 +106,6 @@ class _TimerFuncState extends State<TimerFunc> {
                         currentTurn++;
                         if (currentTurn >= widget.players + 1) {
                           currentTurn = 1;
-                          // debugPrint(
-                          //   currentTurn.toString(),
-                          // );
                         }
                       },
                     );

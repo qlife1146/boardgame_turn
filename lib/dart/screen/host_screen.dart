@@ -26,8 +26,6 @@ class _HostScreenState extends State<HostScreen> {
   @override
   void initState() {
     super.initState();
-    debugPrint("debug: $isRoomCreated.toString()");
-    debugPrint("debug: $_roomCode.toString()");
   }
 
   @override

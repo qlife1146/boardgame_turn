@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:numberpicker/numberpicker.dart';
+import 'package:vscode/dart/function/multi_timer_func.dart';
+import 'package:vscode/dart/function/multi_turn_func.dart';
 
 class MultiSetting extends StatefulWidget {
   final String roomCode;
@@ -127,7 +129,33 @@ class _MultiSettingState extends State<MultiSetting> {
                   },
                 ),
               ),
-              ElevatedButton(onPressed: null, child: Text("Start")),
+              ElevatedButton(
+                onPressed: () {
+                  _gameRoomOpen_timer();
+                  if (_timeDuration > 0) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MultiTimerFunc(
+                          timeDuration: _timeDuration,
+                          players: _guests,
+                        ),
+                      ),
+                    );
+                  } else if (_timeDuration == 0) {
+                    _gameRoomOpen_turn();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MultiTurnFunc(
+                          players: _guests,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: Text("Start"),
+              ),
             ],
           ),
         ),
@@ -135,9 +163,20 @@ class _MultiSettingState extends State<MultiSetting> {
     );
   }
 
-  void _playerList() async {
-    final roomDoc =
-        FirebaseFirestore.instance.collection('rooms').doc(widget.roomCode);
-    DocumentSnapshot listSnapshot = await roomDoc.get();
+  void _gameRoomOpen_timer() async {
+    final roomCollection = FirebaseFirestore.instance.collection('rooms');
+    await roomCollection.doc(widget.roomCode).set({
+      'gameRoomOpen': true,
+      'timeDuration': _timeDuration,
+      'players': _guests,
+    });
+  }
+
+  void _gameRoomOpen_turn() async {
+    final roomCollection = FirebaseFirestore.instance.collection('rooms');
+    await roomCollection.doc(widget.roomCode).set({
+      'gameRoomOpen': true,
+      'players': _guests,
+    });
   }
 }

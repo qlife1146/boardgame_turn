@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:vscode/dart/function/multi_timer_func.dart';
 
 class WaitRoomScreen extends StatefulWidget {
   final String roomCode;
@@ -13,6 +14,7 @@ class WaitRoomScreen extends StatefulWidget {
 class _WaitRoomScreenState extends State<WaitRoomScreen> {
   List<String> guests = [];
   bool _dialogShown = false;
+  bool _navigatedToNextPage = false;
   @override
   void initState() {
     super.initState();
@@ -79,6 +81,27 @@ class _WaitRoomScreenState extends State<WaitRoomScreen> {
                     return const Center(
                       child: Text("You have been removed from the room."),
                     );
+                  }
+
+                  if (roomData != null &&
+                      roomData.containsKey('gameRoomOpen')) {
+                    if (roomData['gameRoomOpen'] == true &&
+                        !_navigatedToNextPage) {
+                      _navigatedToNextPage = true;
+                      WidgetsBinding.instance.addPostFrameCallback(
+                        (_) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MultiTimerFunc(
+                                timeDuration: roomData['timeDuration'],
+                                players: roomData['players'],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }
                   }
 
                   if (guests.isNotEmpty) {

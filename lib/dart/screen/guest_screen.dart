@@ -74,6 +74,7 @@ class _GuestScreenState extends State<GuestScreen> {
   }
 
   void _joinRoom() async {
+    //go to waiting room.
     final roomDoc = FirebaseFirestore.instance
         .collection('rooms')
         .doc(_roomCodeController.text);

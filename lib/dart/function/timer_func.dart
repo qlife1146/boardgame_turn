@@ -6,6 +6,7 @@ class TimerFunc extends StatefulWidget {
   final int timeDuration;
   final int players;
   TimerFunc({
+    super.key,
     required this.timeDuration,
     required this.players,
   });

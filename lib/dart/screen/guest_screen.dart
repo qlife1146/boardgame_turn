@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:vscode/dart/screen/wait_room_screen.dart';
 
 class GuestScreen extends StatefulWidget {
@@ -15,11 +16,21 @@ class _GuestScreenState extends State<GuestScreen> {
   final TextEditingController _roomCodeController = TextEditingController();
   late String _hostName;
   late Stream<DocumentSnapshot>? roomStream;
+  bool isButtonEnabled = false;
 
   @override
   void initState() {
     super.initState();
     roomStream = widget.roomStream;
+    _nameController.addListener(_updateButtonState);
+    _roomCodeController.addListener(_updateButtonState);
+  }
+
+  void _updateButtonState() {
+    setState(() {
+      isButtonEnabled = _nameController.text.isNotEmpty &&
+          _roomCodeController.text.isNotEmpty;
+    });
   }
 
   @override
@@ -36,6 +47,7 @@ class _GuestScreenState extends State<GuestScreen> {
                   controller: _nameController,
                   decoration: InputDecoration(labelText: "Your name"),
                   textInputAction: TextInputAction.next,
+                  inputFormatters: [LengthLimitingTextInputFormatter(10)],
                 ),
               ),
               Padding(
@@ -43,32 +55,17 @@ class _GuestScreenState extends State<GuestScreen> {
                 child: TextField(
                   controller: _roomCodeController,
                   decoration: InputDecoration(labelText: "Room code"),
-                  // textInputAction: TextInputAction.continueAction,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                    LengthLimitingTextInputFormatter(6),
+                  ],
                 ),
               ),
               ElevatedButton(
-                onPressed: _joinRoom,
+                onPressed: isButtonEnabled ? _joinRoom : null,
                 child: Text("Join"),
               ),
-              StreamBuilder<DocumentSnapshot>(
-                stream: roomStream,
-                builder: (context, snapshot) {
-                  //snapshot의 Connection 상태가 active일 때 && 데이터가 들어있을 때
-                  if (snapshot.connectionState == ConnectionState.active &&
-                      snapshot.hasData) {
-                    var roomData =
-                        snapshot.data!.data() as Map<String, dynamic>;
-                    if (!roomData['guests'].contains(_nameController.text)) {
-                      WidgetsBinding.instance.addPostFrameCallback(
-                        (_) {
-                          _showBannedDialog();
-                        },
-                      );
-                    }
-                  }
-                  return SizedBox.shrink();
-                },
-              )
             ],
           ),
         ),
@@ -83,9 +80,32 @@ class _GuestScreenState extends State<GuestScreen> {
     DocumentSnapshot roomSnapshot = await roomDoc.get();
     //get은 1회성 조회, snapshot은 실시간 조회. snapshot의 실시간 변화는 stream으로 전송.
 
+    String name = _nameController.text.trimRight();
+
     if (roomSnapshot.exists) {
       //exists = roomSnapshot에 데이터가 있다면 ture, 없다면 false.
       var roomData = roomSnapshot.data() as Map<String, dynamic>;
+      List<String> guests = List<String>.from(roomData['guests'] ?? []);
+
+      if (guests.contains(_nameController.text)) {
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Duplicate Name"),
+            content: Text("This name is already in the room."),
+            actions: [
+              TextButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    _nameController.clear();
+                  },
+                  child: Text("OK"))
+            ],
+          ),
+        );
+        return;
+      }
       if (roomData['isOpen'] == true) {
         _hostName = roomData['host'];
         roomStream = roomDoc.snapshots();
@@ -103,48 +123,55 @@ class _GuestScreenState extends State<GuestScreen> {
                     List<String> guests = List<String>.from(roomData['guests']);
                     guests.add(_nameController.text); // =guest name
 
-                    await roomDoc.update(
-                      {
-                        'guests': guests,
-                      },
-                    );
+                    await roomDoc.update({
+                      'guests': guests,
+                    });
 
-                    Navigator.push(
+                    var result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => WaitRoomScreen(
-                          _roomCode: _roomCodeController.text,
-                          _guestName: _nameController.text,
+                          roomCode: _roomCodeController.text,
+                          guestName: name,
                         ),
                       ),
                     );
+                    if (result == true) {
+                      _clearTextFields();
+                    }
                   },
                   child: Text("Yes"))
             ],
           ),
         );
       } else {
+        if (!mounted) return; // mounted 체크 추가
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text("Room is closed.")));
       }
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Room not found.")));
+      if (!mounted) return; // mounted 체크 추가
+      // ScaffoldMessenger.of(context)
+      //     .showSnackBar(SnackBar(content: Text("Room not found.")));
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(""),
+          content: Text("Room not found."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("OK"),
+            )
+          ],
+        ),
+      );
     }
   }
 
-  void _showBannedDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("You are banned."),
-        actions: [
-          TextButton(
-              onPressed: () =>
-                  Navigator.popUntil(context, ModalRoute.withName('/')),
-              child: Text("OK"))
-        ],
-      ),
-    );
+  void _clearTextFields() {
+    _roomCodeController.clear();
   }
 }
